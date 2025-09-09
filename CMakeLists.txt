@@ -1,37 +1,26 @@
-cmake_minimum_required(VERSION 3.16)
-project(SearchEngine)
+cmake_minimum_required(VERSION 3.8)
+project(SearchEng VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Включаем автоматическое подключение модулей Qt
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+set(MY_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+set(MY_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
-# Находим Qt6
-find_package(Qt6 REQUIRED COMPONENTS Core Test)
+include(FetchContent)
+#GoogleTest
+FetchContent_Declare(googletest GIT_REPOSITORY https://github.com/google/googletest.git GIT_TAG v1.13.0)
 
-# Включаем систему тестирования
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+set(gtest_disable_pthreads on)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
 enable_testing()
 
-# Добавляем поддиректорию src
 add_subdirectory(src)
+add_subdirectory(tests)
 
-# Копируем ресурсы и конфигурационные файлы в корень билд-директории
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/resources)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
-endif()
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(${CMAKE_SOURCE_DIR}/nlohmann_json/json-develop
+    ${CMAKE_CURRENT_BINARY_DIR}/nlohmann_json)
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/config.json)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/config.json DESTINATION ${CMAKE_BINARY_DIR})
-endif()
-
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/requests.json)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/requests.json DESTINATION ${CMAKE_BINARY_DIR})
-endif()
-
-# Добавляем заголовочные файлы и JSON файлы в проект для отображения в IDE
-file(GLOB_RECURSE HEADER_FILES "include/*.h")
-file(GLOB JSON_FILES "*.json")
-add_custom_target(project_files SOURCES ${HEADER_FILES} ${JSON_FILES})

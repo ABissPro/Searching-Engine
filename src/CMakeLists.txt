@@ -1,44 +1,9 @@
-# Явно перечисляем файлы для основного приложения
-set(MAIN_SOURCE_FILES
-    converterjson.cpp
-    invertedindex.cpp
-    main.cpp
-    searchserver.cpp
-)
+cmake_minimum_required(VERSION 3.8)
 
-# Явно перечисляем файлы для тестового приложения
-set(TEST_SOURCE_FILES
-    converterjson.cpp
-    invertedindex.cpp
-    searchserver.cpp
-    test_main.cpp
-)
+set(Src main.cpp converterJson.cpp searchServer.cpp invertedIndex.cpp)
 
-# Основное приложение
-add_executable(SearchEngine ${MAIN_SOURCE_FILES})
-target_link_libraries(SearchEngine PRIVATE Qt6::Core)
-set_target_properties(SearchEngine PROPERTIES
-    LINKER_LANGUAGE CXX
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-target_include_directories(SearchEngine PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/nlohmann_json/json-develop/include
-)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_executable(SearchEng ${Src})
 
-# Тестовое приложение
-add_executable(SearchEngineTests ${TEST_SOURCE_FILES})
-target_link_libraries(SearchEngineTests PRIVATE Qt6::Test Qt6::Core)
-set_target_properties(SearchEngineTests PROPERTIES
-    AUTOMOC ON
-    LINKER_LANGUAGE CXX
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-target_include_directories(SearchEngineTests PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/nlohmann_json/json-develop/include
-)
-
-# Добавляем тест
-add_test(NAME QtTests COMMAND SearchEngineTests)
-add_test(NAME SearchServerTests COMMAND SearchEngineTests)
+target_link_libraries(SearchEng nlohmann_json::nlohmann_json)
+target_include_directories(SearchEng PUBLIC ${MY_INCLUDE_DIR})

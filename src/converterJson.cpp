@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
-#include <iomanip>  // Перемещено в начало для setw/setfill
+#include <iomanip>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -15,7 +15,6 @@ fs::path ConverterJSON::findFileUpwards(const std::string& filename, int maxDept
         if (fs::exists(candidate)) return candidate;
         cur = cur.parent_path();
     }
-    // last attempt: executable directory (on some setups)
     fs::path exeDir = fs::current_path();
     fs::path alt = exeDir / filename;
     if (fs::exists(alt)) return alt;
@@ -27,7 +26,6 @@ string ConverterJSON::normalizeWord(const string& s) {
     out.reserve(s.size());
     for (unsigned char c : s) {
         if (isalpha(c)) out.push_back(static_cast<char>(tolower(c)));
-        // else ignore punctuation/digits
     }
     return out;
 }
@@ -58,11 +56,10 @@ bool ConverterJSON::fileConfigVerify() {
 
         string version = config["config"]["version"].get<string>();
         if (version != "0.1") {
-            cout << "config.json has incorrect file version" << endl;  // Исправлено на точное сообщение из ТЗ
+            cout << "config.json has incorrect file version" << endl;
             return false;
         }
 
-        // Исправлено: вывод "Starting <name>" как в ТЗ
         cout << "Starting " << config["config"]["name"] << endl;
         cout << "version: " << version << endl;
         return true;
@@ -95,7 +92,7 @@ vector<string> ConverterJSON::GetTextDocuments() {
             ifstream docInput(docPath);
             if (!docInput.is_open()) {
                 cout << docPath.string() << " file not found!" << endl;
-                textDocuments.emplace_back(); // пустой документ — тесты учитывают это
+                textDocuments.emplace_back();
                 continue;
             }
 
@@ -106,7 +103,6 @@ vector<string> ConverterJSON::GetTextDocuments() {
                 string norm = normalizeWord(token);
                 if (norm.empty()) continue;
                 if (!words.empty()) words += ' ';
-                // ensure word length limit:
                 if (norm.size() > 100) norm = norm.substr(0, 100);
                 words += norm;
                 ++countWords;
@@ -157,7 +153,6 @@ vector<string> ConverterJSON::GetRequests() {
         vector<string> normalized;
         normalized.reserve(tempValue.size());
         for (const auto& item : tempValue) {
-            // normalize whole query: split, normalize words, then rejoin
             stringstream ss(item);
             string token;
             int wordCount = 0;
@@ -170,7 +165,7 @@ vector<string> ConverterJSON::GetRequests() {
                 ++wordCount;
             }
             if (!rebuilt.empty()) normalized.push_back(rebuilt);
-            else normalized.push_back(string()); // keep same count/order as input
+            else normalized.push_back(string());
         }
         return normalized;
     }
@@ -229,3 +224,4 @@ void ConverterJSON::putAnswers(const std::vector<std::vector<std::pair<int, floa
     output.close();
     std::cout << "Results saved to " << outPath.string() << std::endl;
 }
+

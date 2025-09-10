@@ -10,7 +10,6 @@ static std::string normalize_token(const std::string& token) {
     out.reserve(token.size());
     for (unsigned char c : token) {
         if (isalpha(c)) out.push_back(static_cast<char>(tolower(c)));
-        // игнорируем прочие символы
     }
     return out;
 }
@@ -51,7 +50,6 @@ void InvertedIndex::indexFile(const std::string& documentText, size_t docId) {
 
 void InvertedIndex::UpdateDocumentBase(const std::vector<std::string>& input_docs) {
     bool expected = false;
-    // не позволяем параллельный вызов
     if (!is_indexing.compare_exchange_strong(expected, true)) return;
 
     {
@@ -70,7 +68,6 @@ void InvertedIndex::UpdateDocumentBase(const std::vector<std::string>& input_doc
         if (thread.joinable()) thread.join();
     }
 
-    // сортируем векторы Entry по doc_id
     {
         std::lock_guard<std::mutex> lock(mutex);
         for (auto& [word, entries] : freq_dictionary) {
@@ -98,3 +95,4 @@ std::map<std::string, std::vector<Entry>> InvertedIndex::GetDictionary() const {
     std::lock_guard<std::mutex> lock(mutex);
     return freq_dictionary;
 }
+

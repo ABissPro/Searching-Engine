@@ -24,16 +24,14 @@ static vector<string> split_and_normalize(const string& query) {
 }
 
 vector<vector<RelativeIndex>> SearchServer::search(const vector<string>& queries_input) {
-    // –езультирующий вектор фиксированного размера Ч чтобы вернуть ответы в пор€дке запросов
     vector<vector<RelativeIndex>> results(queries_input.size());
 
     vector<thread> threads;
     threads.reserve(queries_input.size());
     mutex resultsMutex;
 
-    // ”далЄн broken-блок: только корректные потоки
     for (size_t qi = 0; qi < queries_input.size(); ++qi) {
-        threads.emplace_back([this, &results, &resultsMutex, qi, &queries_input]() {  // явный захват this, results, mutex по ref; qi по value; queries_input по ref
+        threads.emplace_back([this, &results, &resultsMutex, qi, &queries_input]() { 
             const string& query = queries_input[qi];
             vector<string> words = split_and_normalize(query);
             if (words.empty()) {
@@ -42,20 +40,16 @@ vector<vector<RelativeIndex>> SearchServer::search(const vector<string>& queries
                 return;
             }
 
-            // ”никализируем слова (пор€док слов при пересечении не важен)
             unordered_set<string> uniqSet(words.begin(), words.end());
             vector<string> uniqWords(uniqSet.begin(), uniqSet.end());
 
-            // ƒл€ AND: начнЄм с множества документов первого слова, затем пересекаем
-            // ѕолучим вхождени€ первого слова
             auto firstEntries = index.GetWordCount(uniqWords[0]);
             if (firstEntries.empty()) {
                 lock_guard<mutex> g(resultsMutex);
-                results[qi] = {}; // пересечение пусто
+                results[qi] = {};
                 return;
             }
 
-            // »спользуем map дл€ хранени€ суммарного количества вхождений (абсолютной релевантности)
             unordered_map<size_t, size_t> absRelevance;
             unordered_set<size_t> currentDocs;
             for (const auto& e : firstEntries) {
@@ -63,7 +57,6 @@ vector<vector<RelativeIndex>> SearchServer::search(const vector<string>& queries
                 absRelevance[e.doc_id] = e.count;
             }
 
-            // ƒл€ каждого следующего слова Ч вычисл€ем множество документов и пересекаем
             for (size_t wi = 1; wi < uniqWords.size(); ++wi) {
                 const string& w = uniqWords[wi];
                 auto entries = index.GetWordCount(w);
@@ -90,7 +83,6 @@ vector<vector<RelativeIndex>> SearchServer::search(const vector<string>& queries
 
             vector<RelativeIndex> rels;
             if (!currentDocs.empty()) {
-                // ЌайдЄм максимум и нормализуем
                 size_t maxAbs = 0;
                 for (auto docid : currentDocs) {
                     if (absRelevance[docid] > maxAbs) maxAbs = absRelevance[docid];
@@ -108,7 +100,6 @@ vector<vector<RelativeIndex>> SearchServer::search(const vector<string>& queries
                 if (static_cast<int>(rels.size()) > responsesLimit) rels.resize(responsesLimit);
             }
 
-            // записываем именно в слот с индексом qi (сохранение пор€дка)
             {
                 lock_guard<mutex> g(resultsMutex);
                 results[qi] = std::move(rels);
@@ -120,3 +111,4 @@ vector<vector<RelativeIndex>> SearchServer::search(const vector<string>& queries
 
     return results;
 }
+

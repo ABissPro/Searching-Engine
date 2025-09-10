@@ -48,7 +48,6 @@ TEST(TestCaseSearchServer, TestTop5) {
             "warsaw is the capital of poland",
     };
     const vector<string> request = { "moscow is the capital of russia" };
-    // ƒл€ логики AND: документ, содержащий все слова запроса Ч только индекс 7 ("moscow is the capital of russia")
     const std::vector<vector<RelativeIndex>> expected = {
             {
                     {7, 1.0f}
@@ -61,3 +60,4 @@ TEST(TestCaseSearchServer, TestTop5) {
 
     ASSERT_EQ(result, expected);
 }
+

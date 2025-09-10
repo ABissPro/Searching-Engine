@@ -20,19 +20,16 @@ private:
     std::map<std::string, std::vector<Entry>> freq_dictionary;
     mutable std::mutex mutex;
     std::atomic<bool> is_indexing;
-    size_t documentsCount; // количество документов в индексе
+    size_t documentsCount;
 
-    // “еперь метод принимает не путь к файлу, а содержимое документа (строку)
     void indexFile(const std::string& documentText, size_t docId);
 
 public:
     InvertedIndex();
 
-    // «апрещаем копирование и присваивание
     InvertedIndex(const InvertedIndex&) = delete;
     InvertedIndex& operator=(const InvertedIndex&) = delete;
 
-    // –азрешаем перемещение
     InvertedIndex(InvertedIndex&& other) noexcept;
     InvertedIndex& operator=(InvertedIndex&& other) noexcept;
 
@@ -42,3 +39,4 @@ public:
     size_t GetNumDocuments() const;
     std::map<std::string, std::vector<Entry>> GetDictionary() const;
 };
+
